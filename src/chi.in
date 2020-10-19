@@ -1,0 +1,12 @@
+&input
+  fhop = '../data/converted'
+  mode = 'chi'
+  nkx = 30
+  nky = 30
+  nkz = 10
+  nqx = 15
+  nqy = 15
+  nqz = 5
+  qmode = 0
+  qind  = 1
+/

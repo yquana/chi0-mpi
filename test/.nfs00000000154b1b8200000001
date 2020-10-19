@@ -1,0 +1,10 @@
+&input
+  fhop = '../data/converted'
+  mode = 'chi'
+  nkx = 20
+  nky = 20
+  nkz = 10
+  qmode = -1
+  fsthick = 0.5
+/
+   0.6392380754       0.4344735056       0.0000000000

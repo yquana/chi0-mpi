@@ -1,0 +1,9 @@
+&input
+  fhop = '../data/converted'
+  mode = 'band3d'
+/
+40 40 40 
+0 0 0 
+1 0 0
+0 1 0
+0 0 1
