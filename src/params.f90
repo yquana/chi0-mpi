@@ -29,13 +29,15 @@
             double precision, allocatable     :: mp_kx(:), mp_ky(:), mp_kz(:)
             double precision, allocatable     :: mp_qx(:), mp_qy(:), mp_qz(:)
             double precision, allocatable     :: ek(:,:), chi0(:)
-            double precision                  :: temp 
+            double precision                  :: temp , gam
+            double precision                  :: ef
             double precision, parameter       :: pi=3.1415926535897932384626 
             character(len=20), parameter      :: fmt="(2I8, 5f18.10)"
             character(len=20)                 :: fhop
             
             namelist /input/  nkx, nky, nkz, nqx, nqy, nqz, temp, num_q,&
-                            &  fhop, qmode, nswi, mode, kmode, qind, fsthick
+                            &  fhop, qmode, nswi, mode, kmode, qind, &
+                            & fsthick, ef, gam
             
             type hopping_def
                 double complex      :: hop

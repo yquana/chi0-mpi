@@ -1,4 +1,4 @@
-FFLAGS=  -check bounds   -mkl # -llapack -lrefblas  #-ltmglib
+FFLAGS=  -llapack -L/home/bitnami/github/lapack-3.8.0 -lrefblas #-check bounds   -mkl # -llapack -lrefblas  #-ltmglib
 F90 = mpif90 #fortran -g
 #gfortran
 

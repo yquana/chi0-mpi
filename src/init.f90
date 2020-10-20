@@ -5,8 +5,9 @@
           subroutine read_input()
             use params
             implicit none
-            integer                          :: i,  nkpt, kden
+            integer                          :: i,  nkpt, kden, nqpt, qden
             double precision, allocatable    :: kx(:), ky(:), kz(:)
+            double precision, allocatable    :: qx(:), qy(:), qz(:)
             double precision                 :: vol, factor
 
             qind = 0
@@ -71,7 +72,6 @@
             else if (mode .eq. 'band3d') then
                 read(200,*) nkx, nky, nkz
                 num_k = nkx * nky * nkz
-                !print *, 'num_k',num_k
                 allocate(mp_kx(num_k), mp_ky(num_k), mp_kz(num_k))
                 allocate(kx(4), ky(4), kz(4), source=0d0)
                 do i = 1, 4
@@ -88,9 +88,20 @@
                     write(*,*) "q-mesh generated from nqx, nqy, nqz."
                     call gen_q_mesh()
                 else if (qmode .eq. -1) then
-                     num_q = 1
-                     allocate(mp_qx(1), mp_qy(1), mp_qz(1))
+                    num_q = 1
+                    allocate(mp_qx(1), mp_qy(1), mp_qz(1))
                     read(200, *) mp_qx(1), mp_qy(1), mp_qz(1)
+                else if (qmode .eq. -2) then
+                    num_q = 0
+                    read(200,*) nqpt
+                    allocate(qx(nqpt),qy(nqpt),qz(nqpt))
+                    do i = 1, nqpt
+                        read(200,*) qx(i),qy(i),qz(i), qden
+                        num_q = qden + num_q
+                    end do
+                    num_q = num_q - qden
+                    call get_qmesh_path(qx, qy, qz, nqpt)
+                    print *, 'qmode',qmode,qx, qy, qz, num_q
                 else if ( qmode .gt. 0 .and. int(qmode) .eq. qmode) then
                     write(*,*) "q subdivision, div_x/div_y/div_z:", qmode
                     call gen_q_mesh()
@@ -109,22 +120,6 @@
                     & hop_r(i)%hop_y, hop_r(i)%hop_z, hop(i)%hop
             end do
             write(*,*) "Finished reading hopping parameters"
-          end subroutine
-          
-          subroutine get_q_per_core()
-            use params
-            implicit none
-            integer         :: i, j, k
-            
-            num_q      = nqx * nqy * nqz
-            q_per_core = int(num_q / mp_size)
-            
-            if (q_per_core * mp_size .ne. num_q ) then
-                if (mp_rank .lt. num_q - q_per_core * mp_size) then
-                    q_per_core = q_per_core + 1
-                end if
-            end if
-            
           end subroutine
           
           subroutine get_kmesh_full()
@@ -151,7 +146,8 @@
             use params
             implicit none
             integer, intent(in) :: nkpt
-            double precision :: kx(nkpt), ky(nkpt), kz(nkpt), x, vec(3)
+            double precision,intent(in) :: kx(nkpt), ky(nkpt), kz(nkpt)
+            double precision :: x, vec(3)
             integer     :: ind
             integer     :: i, j, k, kden
             
@@ -167,6 +163,35 @@
                 mp_ky(ind) = vec(1) * b(1,2) + vec(2) * b(2,2) + vec(3) * b(3,2)
                 mp_kz(ind) = vec(1) * b(1,3) + vec(2) * b(2,3) + vec(3) * b(3,3)
               end do
+            end do
+          end subroutine
+
+          subroutine get_qmesh_path(qx, qy, qz, nqpt)
+            use params
+            implicit none
+            integer, intent(in)  :: nqpt
+            double precision,intent(in) :: qx(nqpt), qy(nqpt), qz(nqpt)
+            double precision :: x, vec(3)
+            integer :: ind
+            integer :: i, j, k, qden
+
+            qden = int(num_q/(nqpt-1))
+            if (allocated(mp_qx)) then
+                    deallocate(mp_qx,mp_qy,mp_qz)
+            end if
+            allocate(mp_qx(num_q),mp_qy(num_q),mp_qz(num_q),source=0d0)
+
+            do i = 1, nqpt - 1
+              do j = 0, qden - 1
+                ind = (i - 1) * qden + j + 1
+                x = float(j)/float(qden - 1)
+                vec(1) = (1d0 - x) * qx(i) + x * qx(i + 1)
+                vec(2) = (1d0 - x) * qy(i) + x * qy(i + 1)
+                vec(3) = (1d0 - x) * qz(i) + x * qz(i + 1)
+                mp_qx(ind) = vec(1) * b(1,1) + vec(2) * b(2,1) + vec(3) * b(3,1)
+                mp_qy(ind) = vec(1) * b(1,2) + vec(2) * b(2,2) + vec(3) * b(3,2)
+                mp_qz(ind) = vec(1) * b(1,3) + vec(2) * b(2,3) + vec(3) * b(3,3)
+              end do  
             end do
           end subroutine
 

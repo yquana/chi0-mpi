@@ -19,15 +19,20 @@
                 call get_work_space() 
                 write(*,*) "-/Compute workspace size"
                 ! compute lwork, liwork, lrwork etc for zheevr
-                print *, mode
+                !print *, mode
                 if (trim(adjustl(mode)) .eq. 'chi') then
-                  if (qind .eq. 0) then
+                  if (qmode .eq. 0) then
                     do i = 1, num_q
                       write(*,*) "Q index!", i
                       call calc_chi0(i, 0d0)
                     end do
-                  else if (qind .ne. 0) then
-                    call calc_chi0(qind, 0d0)
+                  else if (qmode .eq. -1) then
+                    call calc_chi0(1, 0d0)
+                  else if (qmode .eq. -2) then
+                    do i = 1, num_q
+                      print *,'mp_qx', mp_qx(i)
+                      call calc_chi0(i, 0d0)
+                    end do
                   end if
                 else if (trim(adjustl(mode)) .eq. 'band') then
                    eunit = 4000
@@ -98,7 +103,7 @@
                 
                 call zheevr('V', 'A', 'U', nwan, ham, nwan, 0d0, 0d0, 0, 0, abstol, m, &
                 & w, z, nwan, isuppz, work, lwork, rwork, lrwork, iwork, liwork, info)
-                print *, info
+                !print *, info
                 eig = w
                 vec = z
             end subroutine
@@ -138,14 +143,14 @@
 
                 do i = 1, nwan
                    write(eunit, '(A5, f18.10)', advance='no') ',',eig(i)
-                   !write(vunit, '(f18.10, A5)', advance='no') eig(i),','
-                   !do j = 1, nwan
-                   !  write(vunit, '(2f18.10)', advance='no') vec(j,i)
-                   !end do
-                   !write(vunit,*)
+                   write(vunit, '(f18.10, A5)', advance='no') eig(i),','
+                   do j = 1, nwan
+                     write(vunit, '(2f18.10)', advance='no') vec(j,i)
+                   end do
+                   write(vunit,*)
                 end do
                 write(eunit, *)
-                !write(vunit, *)
+                write(vunit, *)
             end subroutine
 
             subroutine get_ek_co(kx, ky, kz, eig, vec)
@@ -234,19 +239,19 @@
                 integer,allocatable                   :: k_min(:), k_max(:)
                 double precision                      :: kx_new, ky_new, kz_new 
                 double precision                      :: eig0(nwan), eig1(nwan)
-                double precision                      :: gam
                 double complex                        :: vec0(nwan, nwan), vec1(nwan, nwan)
                 double complex,allocatable            :: tmp1(:,:)
                 double complex,allocatable            :: tmp2(:,:)
                 double complex,allocatable            :: tmp3(:,:)
                 double complex,allocatable            :: tmp4(:,:)
                 double complex,allocatable            :: tmp5(:,:)
+                double complex,allocatable            :: tmp6(:,:)
+                double complex,allocatable            :: intra(:,:),intra_tot(:,:)
+                double complex,allocatable            :: inter(:,:),inter_tot(:,:)
                 character(len=20)                     :: name
                 integer :: mp_ind, ierr, ndim
 
-
                 ndim = nwan * nwan * nwan * nwan
-
                 print *, mp_size , 'num_k',num_k, 'inq',inq
                 allocate(k_min(mp_size),k_max(mp_size))
                 if (mod(num_k, mp_size) .eq. 0 ) then
@@ -268,19 +273,20 @@
                 allocate(tmp2(nwan,nwan),source=(0d0,0d0))
                 allocate(tmp3(nwan*nwan,nwan*nwan),source=(0d0,0d0))
                 allocate(tmp4(nwan*nwan,nwan*nwan),source=(0d0,0d0))
-                allocate(tmp5(nwan*nwan, nwan*nwan), source=(0d0,0d0))
-
-                gam = 0.02
+                allocate(tmp5(nwan*nwan,nwan*nwan),source=(0d0,0d0))
+                allocate(tmp6(nwan*nwan,nwan*nwan),source=(0d0,0d0))
+                allocate(inter(nwan*nwan,nwan*nwan),source=(0d0,0d0))
+                allocate(intra(nwan*nwan,nwan*nwan),source=(0d0,0d0))
+                allocate(inter_tot(nwan*nwan,nwan*nwan),source=(0d0,0d0))
+                allocate(intra_tot(nwan*nwan,nwan*nwan),source=(0d0,0d0))
 
                 mp_ind = mp_rank + 1
                 do i = k_min(mp_ind), k_max(mp_ind)
-                  write(*,*) 'k-index', i, k_min(mp_ind), k_max(mp_ind)
                   call gen_ene(mp_kx(i), mp_ky(i), mp_kz(i), eig0, vec0)
                   kx_new = mp_kx(i) + mp_qx(inq)
                   ky_new = mp_ky(i) + mp_qy(inq)
                   kz_new = mp_kz(i) + mp_qz(inq)
                   call gen_ene(kx_new, ky_new, kz_new, eig1, vec1)
-                   
                   do j = 1, nwan
                     if (abs(eig0(j)) < fsthick) then
                       do k = 1, nwan
@@ -292,29 +298,53 @@
                           tmp3(:,:) = arr_mul(tmp1(:,:),tmp2(:,:), nwan*nwan)
                           tmp4(:,:) = tmp3(:,:) + tmp4(:,:)
                         end if
+                        if (j .eq. k) then
+                                intra(:,:) = intra(:,:) + tmp3(:,:)
+                        else if (j .ne. k) then
+                                inter(:,:) = inter(:,:) + tmp3(:,:)
+                        end if
                       end do
                     end if
                   end do
                 end do
 
-                tmp5 = (0d0,0d0)
-
-                write(*,"(A5, 2f18.10,i4)") 'A11', tmp4(1,1), MPI_DOUBLE_COMPLEX
-                write(*,"(A5, 2f18.10,i4)") 'A22', tmp4(2,2), MPI_DOUBLE_COMPLEX
-
-
                 call MPI_Reduce(tmp4, tmp5, ndim , &
                               &MPI_DOUBLE_COMPLEX, MPI_SUM, &
                               &  0, MPI_COMM_WORLD, ierr)
-                print *, "Reduce ierr", ierr
+                call MPI_Reduce(intra, intra_tot, ndim, MPI_DOUBLE_COMPLEX, MPI_SUM, &
+                              & 0, MPI_COMM_WORLD, ierr)
+                call MPI_Reduce(inter, inter_tot, ndim, &
+                              & MPI_DOUBLE_COMPLEX, MPI_SUM, &
+                              & 0, MPI_COMM_WORLD, ierr)
+
                 if (mp_rank .eq. 0) then
                     open(unit=5000, file="chi-k")
-                    write(5000,"(3f18.10)") mp_qx(inq), mp_qy(inq), mp_qz(inq)
+                    open(unit=5001, file="chi-k-intra")
+                    open(unit=5002, file="chi-k-inter")
+                    write(5000,"(3f18.10)",advance='no') mp_qx(inq), mp_qy(inq), mp_qz(inq)
                     do i = 1, nwan*nwan
                       do j = 1, nwan*nwan
-                        write(5000,"(2I5,  2f18.10)") i, j, tmp5(i,j) 
+                        write(5000,"(2I5,  2f18.10)",advance='no') i, j,-1e0/float(num_k)*tmp5(i,j) 
                       end do
                     end do
+                    write(5000,*)
+
+                    write(5001,"(3f18.10)",advance='no') mp_qx(inq), mp_qy(inq), mp_qz(inq)
+                    do i = 1, nwan*nwan
+                      do j = 1, nwan*nwan
+                        write(5001,"(2I5,  2f18.10)",advance='no') i,j,-1e0/float(num_k)*intra_tot(i,j) 
+                      end do
+                    end do
+                    write(5001,*)
+
+                    write(5002,"(3f18.10)",advance='no') mp_qx(inq), mp_qy(inq), mp_qz(inq)
+                    do i = 1, nwan*nwan
+                      do j = 1, nwan*nwan
+                        write(5002,"(2I5,  2f18.10)",advance='no') i, j,-1e0/float(num_k)*inter_tot(i,j) 
+                      end do
+                    end do
+                    write(5002,*)
+
                 end if
                 deallocate(k_min, k_max,tmp1,tmp2,tmp3,tmp4)
             end subroutine
@@ -325,6 +355,6 @@
                 implicit none
                 double precision, intent(in)    :: enk
                 
-                gauss0 = 1e0 / (dexp((enk)/temp) + 1d0)
+                gauss0 = 1e0 / (dexp((enk-ef)/temp) + 1d0)
             end function
         end module

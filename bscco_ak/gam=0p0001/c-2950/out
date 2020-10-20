@@ -1,0 +1,13 @@
+  a(1)      1.0000000000      0.0000000000      0.0000000000
+  a(2)      0.0000000000      1.0000000000      0.0000000000
+  a(3)      0.0000000000      0.0000000000      1.0000000000
+  b(1)      6.2831854820      0.0000000000      0.0000000000
+  b(2)      0.0000000000      6.2831854820      0.0000000000
+  b(3)      0.0000000000      0.0000000000      6.2831854820
+ Finished reading input
+ Finished reading hopping parameters
+ \-Compute workspace size
+ get_work_space
+ -/Compute workspace size
+           1 num_k       25600 inq           1
+ qind, mp_rank           1           0

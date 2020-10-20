@@ -1,0 +1,49 @@
+Case              =   2band
+dimension         =   2
+temperature       =   0.04
+numberOfOrbitals  =   2
+chemicalPotential =   1.45
+
+tbParametersFile  =   2band.csv
+FSFile            =   FSforPairing.dat
+GammaFile         =   Gammakkp2band.txt
+KlistFile         =   klist_kz_0_full_BZ_small.dat
+KlistFile         = path_ortho_2D_40.dat
+Chi0File          =   ChiqData2band.bin
+EkFile            =   ek_new.dat
+calculateEk	  =   2
+Coulomb1U         =   2.0
+Coulomb2Up        =   1.0
+Coulomb3J         =   0.5
+Coulomb4Jp        =   0.5
+
+sublattice        =   0
+
+staticUFactor     =   1.0
+singlet           =   1.0
+
+nkIntegration     =   60
+nkInt1            =   60
+nkInt2            =   5
+Interpolation     =   1
+DisplaceX         =   0.0
+DisplaceY         =   0.0
+DisplaceZ         =   0.0
+EdgesFSurf        =   200
+elimup = 2.6
+elimdown =-9.5
+
+pointsOfphi	  =   40
+pointsOfkz	  =   1
+
+a1x               =   1.0
+a1y               =   0.0
+a1z               =   0.0
+
+a2x               =   0.0
+a2y               =   1.0
+a2z               =   0.0
+
+a3x               =   0.0
+a3y               =   0.0
+a3z               =   1.0

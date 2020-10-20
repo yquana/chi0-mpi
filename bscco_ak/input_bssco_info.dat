@@ -1,0 +1,54 @@
+Case = BSCCO_orig_n425
+dimension         =   2
+temperature       =   0.02
+numberOfOrbitals  =   1
+% filling n=    0.4250*2
+chemicalPotential = -0.00223207110326
+
+KlistFile = path_gxmg_40.csv
+
+tbParametersFile  =   HdftBi_2Sr_2CaCu_2O_8_vac_20bohr_2D_cut1mev.out_conv_Z3.mat.csv
+FSFile            =   FSforPairing_bssco_orig_n425.dat
+GammaFile         =   Gammakkp_BSCCO_orig_n425.txt
+Chi0File          =   ChiqData_BSCCO_orig_n425.dat
+EkFile = BSCCO_orig.txt
+calculateEk	  =   2
+Coulomb1U         =   0.4
+Coulomb2Up        =   0.0
+Coulomb3J         =   0.0
+Coulomb4Jp        =   0.0
+
+sublattice        =   0
+
+staticUFactor     =   1.0
+
+Interpolation     =   0
+EdgesFSurf        =   150
+cutoff  = 0.05
+nkIntegration     =   256
+nkInt1            =   256
+nkInt2            =   1
+
+a1x               =   1.0
+a1y               =   0.0
+a1z               =   0.0
+
+a2x               =   0.0
+a2y               =   1.0
+a2z               =   0.0
+
+a3x               =   0.0
+a3y               =   0.0
+a3z               =   1.0
+
+# information about the plane for the path
+planex       = 0
+planey       = 0
+planez       = 0
+direction1x = 1
+direction1y = 0
+direction1z = 0
+direction2x = 0
+direction2y = 1
+direction2z = 0
+gp_filename = BSCCO_bdg_gap_n425.txt
