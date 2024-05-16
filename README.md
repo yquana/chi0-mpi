@@ -3,6 +3,17 @@
 
 A program for computing the bare Lindhard susceptibility.
 
-See /src folder for the Fortran source code.
+See src folders for the source code.
 
-Please edit the Makefile under the src folder before compiling.
+## Get started
+
+
+## Technical detail
+
+
+## Examples
+### UTe2
+
+### YH6
+
+### LaAgSb2
