@@ -18,4 +18,6 @@ namespace parse
     void parse_wq(std::unique_ptr<dataDefs::input> & params_in);
 
     void parse_g(std::unique_ptr<dataDefs::input> & params_in);
+
+    void parse_wann(std::unique_ptr<dataDefs::input> & params_in);
 }

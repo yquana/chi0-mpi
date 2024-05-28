@@ -5,3 +5,6 @@ chi0.x:
 
 clean:
 	rm chi0.x
+
+test:
+	./chi0.x

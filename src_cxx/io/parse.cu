@@ -9,6 +9,7 @@
 #include "defs.h"
 #include "parse.h"
 
+
 void parse::parse_input(std::unique_ptr<dataDefs::input> & params_in)
 {
 	std::ifstream myfile;
@@ -51,12 +52,17 @@ void parse::parse_wq(std::unique_ptr<dataDefs::input> & params_in)
 		if(line.find_first_not_of(" ") != std::string::npos)
 		{
 			line_ss = std::stringstream(line);
-			
+
 		}
 	}
 }
 
 void parse::parse_g(std::unique_ptr<dataDefs::input> & params_in)
+{
+
+}
+
+void parse::parse_wann(std::unique_ptr<dataDefs::input> & params_in)
 {
 
 }
